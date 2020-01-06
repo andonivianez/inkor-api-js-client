@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>Inkor formación - API Rest consuming</title>
+  </head>
+  <body>
+    <h1>Consumo de API Rest Marvel - Inkor</h1>
+    <div>
+        <p>Listado de comics</p>
+        <ul id="lista_comics">
+        </ul>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
+    <!-- OWN JavaScript -->
+    <script>
+        $( document ).ready(function() {
+            // Create storage object in window enviroment var for saving data
+            window.data_class = {};
+            generateKeys();
+            loadComics();
+
+        });
+
+        function generateKeys(){
+            var pubkey = "42362239b70f0bf73e4502e412d3ff45";
+            var pvtkey = "b60b601a2342f43d287aacfa00d943d1169d70ca";
+            var ts = new Date().getTime();
+
+            window.ts_var = ts;
+            window.apiKey_var = pubkey;
+
+            var message = ts+pvtkey+pubkey;
+            var a = CryptoJS.MD5(message);
+            window.hash_var = a.toString();
+        }
+
+        function loadComics(){
+            var settings = {
+            "async": true,
+            "crossDomain": true,
+            "url": "https://gateway.marvel.com/v1/public/comics?ts="+window.ts_var+"&apikey="+window.apiKey_var+"&hash="+window.hash_var+"",
+            "method": "GET"
+            };
+
+            $.ajax(settings).done(function (response) {
+                console.log("[loadComics]: ",response);
+                window.data_class.comics = response.data.results;
+                comicsController(window.data_class.comics);
+            });
+        }
+
+        function comicsController(data){
+            console.log("[comicsController]:: data: ",data);
+            for (let i = 0; i < data.length; i++) {
+                const element = data[i];
+                console.log("[comicsController]: ",element);
+                $("#lista_comics").append("<li>"+element.title+"</li>");
+            }
+        }
+    </script>
+  </body>
+</html>
