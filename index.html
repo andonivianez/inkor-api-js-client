@@ -32,6 +32,7 @@
         <ul id="lista_comics">
         </ul>
 
+
         <p>Listado de personajes</p>
         <ul id="lista_personajes">
         </ul>
@@ -50,8 +51,10 @@
             // Create storage object in window enviroment var for saving data
             window.data_class = {};
             generateKeys();
+
             //loadComics();
             //loadCharacters();
+
 
             $(document).on('change','#nameCharacter',function(event){
                 console.log("[nomCharacter]:: data: ",$(this).attr("rel"));
@@ -209,6 +212,33 @@
                 const element = data[i];
                 console.log("[charactersNameController]: ",element);
                 $("#lista_personajes").append("<li><a class=\"imgCharacter\" rel=\""+element.id+"\">"+element.name+"</a> <strong>(id: "+element.id+")</strong>"+"</li>");
+            }
+        }
+
+        function loadCaracteres(){
+            var settings = {
+            "async": true,
+            "crossDomain": true,
+            "url": "https://gateway.marvel.com/v1/public/characters?ts="+window.ts_var+"&apikey="+window.apiKey_var+"&hash="+window.hash_var+"",
+            "method": "GET"
+            };
+
+            $.ajax(settings).done(function (response) {
+                console.log("[loadCaracteres]: ",response);
+                window.data_class.caracteres = response.data.results;
+                caracteresController(window.data_class.caracteres);
+            });
+        }
+
+        function caracteresController(data){
+            console.log("[caracteresController]:: data: ",data);
+            for (let i = 0; i < data.length; i++) {
+                const element = data[i];
+                console.log("[caracteresController]: ",element);
+                var link_imagen = element.thumbnail.path+"."+element.thumbnail.extension;
+                console.log("[linkimagen]",link_imagen);
+                $("#lista_caracteres").
+                append("<li><b>"+element.name+" "+element.id+"</b><img src='"+link_imagen+"' height='150' width='90'></li>");
             }
         }
     </script>
