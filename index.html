@@ -9,13 +9,33 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
     <title>Inkor formación - API Rest consuming</title>
+
+    <style>
+        #formPersonaje {
+            padding: 30px 0px;
+        }
+        .comicCharacters,
+        .imgCharacter {
+            cursor: pointer;
+        }
+    </style>
   </head>
   <body>
     <h1>Consumo de API Rest Marvel - Inkor</h1>
+
+    <form id="formPersonaje" name="formPersonaje">
+        <label>Nombre personaje:</label> <input type="text" name="nameCharacter" id="nameCharacter">
+    </form>
+
     <div>
         <p>Listado de comics</p>
         <ul id="lista_comics">
         </ul>
+
+        <p>Listado de personajes</p>
+        <ul id="lista_personajes">
+        </ul>
+        <div id="imagen_personaje"></div>
     </div>
 
     <!-- Optional JavaScript -->
@@ -30,13 +50,38 @@
             // Create storage object in window enviroment var for saving data
             window.data_class = {};
             generateKeys();
-            loadComics();
+            //loadComics();
+            //loadCharacters();
 
+            $(document).on('change','#nameCharacter',function(event){
+                console.log("[nomCharacter]:: data: ",$(this).attr("rel"));
+                window.character_name = $(this).val();
+                $("#lista_personajes").html('');
+                $("#imagen_personaje").html('');
+                if (window.character_name.length > 2) {
+                    loadCharactersName(window.character_name);
+                }
+            });
+
+            $(document).on('click','.comicCharacters',function(event){
+                console.log("[comicCharacters]:: data: ",$(this).attr("rel"));
+                window.comic_id = $(this).attr("rel");
+                $("#lista_personajes").html('');
+                $("#imagen_personaje").html('');
+                loadComicCharacters(window.comic_id);
+            });
+
+            $(document).on('click','.imgCharacter',function(event){
+                console.log("[imgCharacter]:: data: ",$(this).attr("rel"));
+                window.character_id = $(this).attr("rel");
+                $("#imagen_personaje").html('');
+                loadImgCharacter(window.character_id);
+            });
         });
 
         function generateKeys(){
-            var pubkey = "42362239b70f0bf73e4502e412d3ff45";
-            var pvtkey = "b60b601a2342f43d287aacfa00d943d1169d70ca";
+            var pubkey = "c98161e58081dc51b80dfad039fbbcfc";
+            var pvtkey = "16f7c405c741490edb976baa805ca4f1cfd4f0c2";
             var ts = new Date().getTime();
 
             window.ts_var = ts;
@@ -49,10 +94,10 @@
 
         function loadComics(){
             var settings = {
-            "async": true,
-            "crossDomain": true,
-            "url": "https://gateway.marvel.com/v1/public/comics?ts="+window.ts_var+"&apikey="+window.apiKey_var+"&hash="+window.hash_var+"",
-            "method": "GET"
+                "async": true,
+                "crossDomain": true,
+                "url": "https://gateway.marvel.com/v1/public/comics?ts="+window.ts_var+"&apikey="+window.apiKey_var+"&hash="+window.hash_var+"",
+                "method": "GET"
             };
 
             $.ajax(settings).done(function (response) {
@@ -67,7 +112,103 @@
             for (let i = 0; i < data.length; i++) {
                 const element = data[i];
                 console.log("[comicsController]: ",element);
-                $("#lista_comics").append("<li>"+element.title+"</li>");
+                $("#lista_comics").append("<li><a class=\"comicCharacters\" rel=\""+element.id+"\">"+element.title+"</a></li>");
+            }
+        }
+
+        function loadCharacters(){
+            var settings = {
+                "async": true,
+                "crossDomain": true,
+                "url": "https://gateway.marvel.com/v1/public/characters?ts="+window.ts_var+"&apikey="+window.apiKey_var+"&hash="+window.hash_var+"",
+                "method": "GET"
+            };
+
+            $.ajax(settings).done(function (response) {
+                console.log("[loadCharacters]: ",response);
+                window.data_class.characters = response.data.results;
+                charactersController(window.data_class.characters);
+            });
+        }
+
+        function charactersController(data){
+            console.log("[charactersController]:: data: ",data);
+            for (let i = 0; i < data.length; i++) {
+                const element = data[i];
+                console.log("[charactersController]: ",element);
+                $("#lista_personajes").append("<li>"+element.name+" <strong>(id: "+element.id+")</strong>"+"</li>");
+            }
+        }
+
+        function loadComicCharacters(comic){
+            var settings = {
+                "async": true,
+                "crossDomain": true,
+                "url": "http://gateway.marvel.com/v1/public/comics/"+comic+"/characters?ts="+window.ts_var+"&apikey="+window.apiKey_var+"&hash="+window.hash_var+"",
+                "method": "GET"
+            };
+
+            $.ajax(settings).done(function (response) {
+                console.log("[loadComicCharacters]: ",response);
+                window.data_class.comicchars = response.data.results;
+                comicCharacteresController(window.data_class.comicchars);
+            });
+        }
+
+        function comicCharacteresController(data){
+            console.log("[comicCharactersController]:: data: ",data);
+            for (let i = 0; i < data.length; i++) {
+                const element = data[i];
+                console.log("[comicCharactersController]: ",element);
+                $("#lista_personajes").append("<li><a class=\"imgCharacter\" rel=\""+element.id+"\">"+element.name+"</a> <strong>(id: "+element.id+")</strong>"+"</li>");
+            }
+        }
+
+        function loadImgCharacter(character){
+            var settings = {
+                "async": true,
+                "crossDomain": true,
+                "url": "https://gateway.marvel.com/v1/public/characters/"+character+"?ts="+window.ts_var+"&apikey="+window.apiKey_var+"&hash="+window.hash_var+"",
+                "method": "GET"
+            };
+
+            $.ajax(settings).done(function (response) {
+                console.log("[loadImgCharacter]: ",response);
+                window.data_class.character = response.data.results;
+                characterImgController(window.data_class.character);
+            });
+        }
+
+        function characterImgController(data){
+            console.log("[characterImgController]:: data: ",data);
+            for (let i = 0; i < data.length; i++) {
+                const element = data[i];
+                console.log("[characterImgController]: ",element);
+                $("#imagen_personaje").append("<img src="+element.thumbnail.path+"."+element.thumbnail.extension+">");
+            }
+        }
+
+        function loadCharactersName(character){
+            var settings = {
+                "async": true,
+                "crossDomain": true,
+                "url": "https://gateway.marvel.com/v1/public/characters?nameStartsWith="+character+"&ts="+window.ts_var+"&apikey="+window.apiKey_var+"&hash="+window.hash_var+"",
+                "method": "GET"
+            };
+
+            $.ajax(settings).done(function (response) {
+                console.log("[loadCharactersName]: ",response);
+                window.data_class.characters = response.data.results;
+                charactersNameController(window.data_class.characters);
+            });
+        }
+
+        function charactersNameController(data){
+            console.log("[charactersNameController]:: data: ",data);
+            for (let i = 0; i < data.length; i++) {
+                const element = data[i];
+                console.log("[charactersNameController]: ",element);
+                $("#lista_personajes").append("<li><a class=\"imgCharacter\" rel=\""+element.id+"\">"+element.name+"</a> <strong>(id: "+element.id+")</strong>"+"</li>");
             }
         }
     </script>
